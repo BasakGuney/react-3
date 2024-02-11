@@ -16,7 +16,9 @@ const element = {
       },
     },
   },
-  element5: "guney",
+  element5: {
+    surname: "guney",
+  },
 };
 var blank = "";
 
@@ -80,8 +82,15 @@ function loopThroughJSON(obj) {
 
 // Function component for the TreeView
 const MyTreeView = () => {
+  const renderTree = (nodes) => (
+    <TreeItem key={nodes + ""} nodeId={nodes + ""} label={nodes[0] + ""}>
+      {typeof nodes[1] === "object"
+        ? Object.entries(nodes[1]).map((node) => renderTree(node))
+        : null}
+    </TreeItem>
+  );
+
   loopThroughJSON(element);
-  console.log(arr);
   const routeComponents = arr.map(({ path, component1, component2 }, key) => (
     <Route exact path={path} key={key}>
       {component1}
@@ -116,6 +125,9 @@ const MyTreeView = () => {
           >
             {JSON.stringify(element)}
           </textarea>
+          <TreeView>
+            {Object.entries(element).map((node) => renderTree(node))}
+          </TreeView>
         </Route>
       </Router>
     </>

@@ -83,7 +83,11 @@ function loopThroughJSON(obj) {
 // Function component for the TreeView
 const MyTreeView = () => {
   const renderTree = (nodes) => (
-    <TreeItem key={nodes + ""} nodeId={nodes + ""} label={nodes[0] + ""}>
+    <TreeItem
+      key={nodes + ""}
+      nodeId={nodes + ""}
+      label={<a href={"/" + nodes[0]}>{nodes[0] + ""}</a>}
+    >
       {typeof nodes[1] === "object"
         ? Object.entries(nodes[1]).map((node) => renderTree(node))
         : null}

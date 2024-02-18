@@ -3,139 +3,76 @@ import { TreeView } from "@mui/x-tree-view";
 import { useState } from "react";
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.css";
-import Lab from "./lab";
-
-const element = {
-  element1: {
-    element2: {
-      element3: {
-        element4: ["basak", "guney"],
-      },
-      element6: {
-        name: "burcak",
-      },
-    },
-  },
-  element5: {
-    surname: "guney",
-  },
-};
-var blank = "";
-
-const arr = [];
-function loopThroughJSON(obj) {
-  for (let key in obj) {
-    if (typeof obj[key] === "object") {
-      if (Array.isArray(obj[key])) {
-        // loop through array
-
-        const a = "/" + key;
-        const pos = arr.map((e) => e.path).indexOf(a);
-        if (pos == -1) {
-          arr.push({
-            path: a,
-            component1: obj[key].map((item) => {
-              return <></>;
-            }),
-
-            component2: JSON.stringify(obj[key]),
-          });
-        }
-
-        for (let i = 0; i < obj[key].length; i++) {
-          loopThroughJSON(obj[key][i]);
-        }
-      } else {
-        // call function recursively for object
-        const a = "/" + key;
-        const pos = arr.map((e) => e.path).indexOf(a);
-        if (pos == -1) {
-          arr.push({
-            path: a,
-            component1: Object.keys(obj[key]).map((item) => {
-              return (
-                <>
-                  <a href={"/" + item}>{item + ""}</a> <br></br>
-                </>
-              );
-            }),
-
-            component2: JSON.stringify(obj[key]),
-          });
-        }
-        loopThroughJSON(obj[key]);
-      }
-    } else {
-      // do something with value
-      const a = "/" + key;
-      const pos = arr.map((e) => e.path).indexOf(a);
-      if (pos == -1) {
-        arr.push({
-          path: a,
-          component1: <></>,
-          component2: JSON.stringify(obj[key]),
-        });
-      }
-    }
-  }
-}
+import axios from "axios";
 
 // Function component for the TreeView
 const MyTreeView = () => {
-  const renderTree = (nodes) => (
-    <TreeItem
-      key={nodes + ""}
-      nodeId={nodes + ""}
-      label={<a href={"/" + nodes[0]}>{nodes[0] + ""}</a>}
-    >
-      {typeof nodes[1] === "object"
-        ? Object.entries(nodes[1]).map((node) => renderTree(node))
-        : null}
-    </TreeItem>
-  );
+  const [obj, setObj] = useState({});
+  const k = window.location.href.split("/");
+  axios.post("/", { ref: k[3] }).then((res) => {
+    setObj(res.data.response);
+  });
 
-  loopThroughJSON(element);
-  const routeComponents = arr.map(({ path, component1, component2 }, key) => (
-    <Route exact path={path} key={key}>
-      {component1}
-      <br></br>
-      <textarea
-        class="form-control w-50 p-3"
-        id="exampleFormControlTextarea1"
-        rows="3"
-      >
-        {component2}
-      </textarea>
-    </Route>
-  ));
-  return (
-    <>
-      <Router>
-        {routeComponents}
-        <Route exact path="/">
-          {Object.keys(element).map((item) => {
-            return (
-              <>
-                <a href={"/" + item}>{item} </a>
-                <br></br>
-              </>
-            );
-          })}{" "}
-          <br></br>
+  const renderTree = (nodes) => {
+    return (
+      <>
+        <TreeItem
+          key={nodes + ""}
+          nodeId={nodes + ""}
+          label={<a href={"/" + nodes[0]}>{nodes[0] + ""}</a>}
+        >
           <textarea
             class="form-control w-50 p-3"
             id="exampleFormControlTextarea1"
             rows="3"
           >
-            {JSON.stringify(element)}
+            {JSON.stringify(nodes[1])}
           </textarea>
-          <TreeView>
-            {Object.entries(element).map((node) => renderTree(node))}
-          </TreeView>
-        </Route>
-      </Router>
+          <br></br>
+
+          {typeof nodes[1] === "object"
+            ? Array.isArray(nodes[1])
+              ? nodes[1].map((node) =>
+                  typeof node == "object"
+                    ? Object.entries(node).map((item) => renderTree(item))
+                    : null
+                )
+              : Object.entries(nodes[1]).map((node) => renderTree(node))
+            : null}
+        </TreeItem>
+      </>
+    );
+  };
+
+  return (
+    <>
+      {Array(1)
+        .fill()
+        .map(() => {
+          return (
+            <>
+              <TreeView>
+                {Object.entries(obj).map((node) => renderTree(node))}
+              </TreeView>
+            </>
+          );
+        })}
     </>
   );
 };
 
 export default MyTreeView;
+
+/* 
+
+
+app.post("/", (req, res) => {
+  const path = "./" + req.body.ref + ".yaml";
+  if (req.body.ref == "") res.send({ response: {} });
+  else {
+    const respond = yaml.load(fs.readFileSync(path, "utf-8"));
+
+    res.send({ response: respond });
+  }
+});
+*/
